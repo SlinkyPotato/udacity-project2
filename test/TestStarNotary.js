@@ -10,9 +10,8 @@ contract('StarNotary', async (accs) => {
     it('can Create a Star', async() => {
         let tokenId = 1;
         let instance = await StarNotary.deployed();
-        await instance.createStar('Awesome Star!', 'SNT', tokenId, {from: accounts[0]})
-        assert.equal((await instance.tokenIdToStarInfo.call(tokenId)).name, 'Awesome Star!');
-        assert.equal((await instance.tokenIdToStarInfo.call(tokenId)).symbol, 'SNT');
+        await instance.createStar('Awesome Star!', tokenId, {from: accounts[0]})
+        assert.equal(await instance.tokenIdToStarInfo.call(tokenId), 'Awesome Star!');
     });
     
     it('lets user1 put up their star for sale', async() => {
@@ -20,7 +19,7 @@ contract('StarNotary', async (accs) => {
         let user1 = accounts[1];
         let starId = 2;
         let starPrice = web3.utils.toWei(".01", "ether");
-        await instance.createStar('awesome star', 'SNT', starId, {from: user1});
+        await instance.createStar('awesome star', starId, {from: user1});
         await instance.putStarUpForSale(starId, starPrice, {from: user1});
         assert.equal(await instance.starsForSale.call(starId), starPrice);
     });
@@ -32,7 +31,7 @@ contract('StarNotary', async (accs) => {
         let starId = 3;
         let starPrice = web3.utils.toWei(".01", "ether");
         let balance = web3.utils.toWei(".05", "ether");
-        await instance.createStar('awesome star', 'SNT', starId, {from: user1});
+        await instance.createStar('awesome star', starId, {from: user1});
         await instance.putStarUpForSale(starId, starPrice, {from: user1});
        
         await instance.approve(user2, starId, {from: user1}); // fixes test case
@@ -52,7 +51,7 @@ contract('StarNotary', async (accs) => {
         let starId = 4;
         let starPrice = web3.utils.toWei(".01", "ether");
         let balance = web3.utils.toWei(".05", "ether");
-        await instance.createStar('awesome star', 'SNT', starId, {from: user1});
+        await instance.createStar('awesome star', starId, {from: user1});
         await instance.putStarUpForSale(starId, starPrice, {from: user1});
         let balanceOfUser1BeforeTransaction = await web3.eth.getBalance(user2);
         await instance.approve(user2, starId, {from: user1}); // fixes test case
@@ -67,7 +66,7 @@ contract('StarNotary', async (accs) => {
         let starId = 5;
         let starPrice = web3.utils.toWei(".01", "ether");
         let balance = web3.utils.toWei(".05", "ether");
-        await instance.createStar('awesome star', 'SNT', starId, {from: user1});
+        await instance.createStar('awesome star', starId, {from: user1});
         await instance.putStarUpForSale(starId, starPrice, {from: user1});
         let balanceOfUser1BeforeTransaction = await web3.eth.getBalance(user2);
         const balanceOfUser2BeforeTransaction = await web3.eth.getBalance(user2);
@@ -85,16 +84,16 @@ contract('StarNotary', async (accs) => {
         let user1 = accounts[1];
         let starId = 6;
         let starName = 'New Star';
-        let starSymbol = 'NST';
     
         // 1. create a Star with different tokenId
-        await instance.createStar(starName, starSymbol, starId, {from: user1});
+        await instance.createStar(starName, starId, {from: user1});
         
         //2. Call the name and symbol properties in your Smart Contract and compare with the name and symbol provided
         let result = await instance.tokenIdToStarInfo.call(starId);
     
-        assert.equal(result.name, starName);
-        assert.equal(result.symbol, starSymbol);
+        assert.equal(result, starName);
+        assert.equal(await instance.name.call(), 'CoolStar');
+        assert.equal(await instance.symbol.call(), 'SNT');
     });
     
     it('lets 2 users exchange stars', async() => {
@@ -107,11 +106,9 @@ contract('StarNotary', async (accs) => {
         let star2Id = 8;
         let star1Name = "blueStar";
         let star2Name = "yellowStar";
-        let star1Symbol = "BST";
-        let star2Symbol = "YST";
     
-        await instance.createStar(star1Name, star1Symbol, star1Id, {from: user1});
-        await instance.createStar(star2Name, star2Symbol, star2Id, {from: user2});
+        await instance.createStar(star1Name, star1Id, {from: user1});
+        await instance.createStar(star2Name, star2Id, {from: user2});
         // 2. Call the exchangeStars functions implemented in the Smart Contract
     
         await instance.approve(user1, star2Id, {from: user2}); // fixes test case
@@ -130,9 +127,8 @@ contract('StarNotary', async (accs) => {
         // 1. create a Star with different tokenId
         let starId = 9;
         let starName = "GreenStar";
-        let starSymbol = "GST";
 
-        await instance.createStar(starName, starSymbol, starId, {from: user1});
+        await instance.createStar(starName, starId, {from: user1});
         
         // 2. use the transferStar function implemented in the Smart Contract
         await instance.transferStar(user2, starId, {from: user1});
@@ -149,10 +145,9 @@ contract('StarNotary', async (accs) => {
         // 1. create a Star with different tokenId
         let starId = 10;
         let starName = "EndStar";
-        let starSymbol = "EST";
 
         // 1. create a Star with different tokenId
-        await instance.createStar(starName, starSymbol, starId, {from: user1});
+        await instance.createStar(starName, starId, {from: user1});
 
         // 2. Call your method lookUptokenIdToStarInfo
         let result = await instance.lookUptokenIdToStarInfo(starId);
